@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Current TS File",
+      "type": "node",
+      "request": "launch",
+      "args": ["${relativeFile}", "-p", "${workspaceFolder}/tsconfig.json"],
+      "runtimeArgs": [
+        "--experimental-specifier-resolution=node",
+        "--experimental-loader", "ts-node/esm",
+        "--no-warnings"],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart",
+      "console": "integratedTerminal",
+      "envFile": "${workspaceFolder}/.env",
+      "smartStep": true,
+      "skipFiles": ["<node_internals>/**", "node_modules/**"]
+    }
+  ]
+}
