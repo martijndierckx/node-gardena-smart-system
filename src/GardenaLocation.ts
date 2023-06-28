@@ -156,6 +156,8 @@ export class GardenaLocation {
 
     // Subscribe to events if websocket was succesfully created
     if (ws) {
+      let pingInterval: NodeJS.Timer;
+
       ws.on('open', () => {
         // Emit 'startWSUpdates' event on each device when websocket is opened
         for (const device of this.devices) {
@@ -163,12 +165,18 @@ export class GardenaLocation {
         }
 
         // Send regular heartbeat to keep the connection open
-        setInterval(() => {
+        pingInterval = setInterval(() => {
           ws.ping();
         }, 150000); // 150 seconds
       });
 
-      ws.on('error', console.error);
+      ws.on('close', async () => {
+        clearInterval(pingInterval);
+
+        // Reinitiate websocket
+        await this.updateDevicesList();
+        await this.activateRealtimeUpdates();
+      });
 
       ws.on('message', (data) => {
         // Parse JSON
