@@ -1,8 +1,8 @@
 import fetch from 'node-fetch';
+import { API_BASE } from './config';
 import { GardenaAuth } from './GardenaAuth';
 import { GardenaLocation, GardenaLocationError, GardenaRawLocationsJson } from './GardenaLocation';
 import { GardenaDevice } from './GardenaDevice';
-import { API_BASE } from './config';
 
 export type GardenaConnectionConfig = {
   clientId: string;
@@ -86,8 +86,16 @@ export class GardenaConnection {
 
   public async apiRequest(url: string | URL, headers?: any, method = 'GET', body?: any) {
     try {
+      // Add header when json body object is provided
+      let bodyHeader = null;
+      if(body && typeof body === 'object') {
+        bodyHeader = { 'Content-Type': 'application/vnd.api+json' };
+        body = JSON.stringify(body);
+      }
+
       // Combine Auth headers with provided ones
       const combinedHeaders = {
+        ...bodyHeader,
         ...headers,
         ...{
           Authorization: `Bearer ${await this.auth.getValidAccessToken()}`,

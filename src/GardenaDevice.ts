@@ -1,5 +1,6 @@
 import EventEmitter from 'events';
 import Moment from 'moment';
+import { GardenaConnection } from './GardenaConnection';
 
 export type GardenaRawDevicesJson = {
   data: {
@@ -40,6 +41,7 @@ export enum GardenaDeviceRfLinkState {
 }
 
 export class GardenaDevice extends EventEmitter {
+  protected connection: GardenaConnection;
   public readonly id: string;
   public serial: string;
   public modelType: string;
@@ -52,9 +54,10 @@ export class GardenaDevice extends EventEmitter {
   public rfLinkLevelTs: Moment.Moment;
   public rfLinkState: GardenaDeviceRfLinkState;
 
-  protected constructor(id: string) {
+  protected constructor(connection: GardenaConnection, id: string) {
     super();
 
+    this.connection = connection;
     this.id = id;
   }
 

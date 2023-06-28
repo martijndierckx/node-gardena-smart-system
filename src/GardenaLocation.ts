@@ -1,10 +1,11 @@
+import Moment from 'moment';
+import crypto from 'crypto';
+import WebSocket from 'ws';
+import { API_BASE } from './config';
 import { GardenaApiError, GardenaConnection } from './GardenaConnection';
 import { GardenaDevice, GardenaRawDeviceAttributeJson, GardenaRawDevicesJson } from './GardenaDevice';
 import { GardenaMower } from './GardenaMower';
-import Moment from 'moment';
-import crypto from 'crypto';
-import { API_BASE } from './config';
-import WebSocket from 'ws';
+
 
 export class GardenaLocationError extends Error {}
 
@@ -66,7 +67,7 @@ export class GardenaLocation {
             );
           });
 
-          // Get device type
+          // Get device type & service ID
           const characteristicWithType = rawCharacteristics.find((x) => {
             return (
               supportedDeviceTypes.find((y) => {
@@ -75,6 +76,7 @@ export class GardenaLocation {
             );
           });
           const type = characteristicWithType.type;
+          const serviceId = characteristicWithType.id;
 
           // Only proceed when a supported device is found
           const attributes: GardenaRawDeviceAttributeJson[] = [];
@@ -101,7 +103,7 @@ export class GardenaLocation {
           let device: GardenaDevice;
           switch (type) {
             case 'MOWER':
-              device = new GardenaMower(deviceId, attributes);
+              device = new GardenaMower(this.connection, deviceId, serviceId, attributes);
               break;
             default:
               continue;
@@ -127,7 +129,7 @@ export class GardenaLocation {
     }
 
     // Create request body
-    const body = JSON.stringify({
+    const body ={
       data: {
         id: crypto.randomUUID(),
         type: 'WEBSOCKET',
@@ -135,12 +137,12 @@ export class GardenaLocation {
           locationId: this.id
         }
       }
-    });
+    };
 
     // Request Websocket URL
     let websocketUrl: string;
     try {
-      const res = (await this.connection.apiRequest(`${API_BASE}/websocket`, { 'Content-Type': 'application/vnd.api+json' }, 'POST', body)) as any;
+      const res = (await this.connection.apiRequest(`${API_BASE}/websocket`, null, 'POST', body)) as any;
       websocketUrl = res.data.attributes.url;
     } catch (e) {
       throw new GardenaApiError(`Couldn't retrieve websocket URL from Gardena API`);
