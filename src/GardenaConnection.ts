@@ -19,9 +19,9 @@ export class GardenaConnection {
     this.auth = new GardenaAuth({ clientId: config.clientId, clientSecret: config.clientSecret });
   }
 
-  public async activateRealtimeUpdates(loc?: GardenaLocation | string): Promise<void> {
-    const location = await this.selectLocation(loc);
-    return location.activateRealtimeUpdates();
+  public async activateRealtimeUpdates(location?: GardenaLocation | string): Promise<void> {
+    const loc = await this.selectLocation(location);
+    return loc.activateRealtimeUpdates();
   }
 
   public async getLocations(): Promise<GardenaLocation[]> {
@@ -47,9 +47,9 @@ export class GardenaConnection {
     return this.locations;
   }
 
-  public async getDevices(loc?: GardenaLocation | string): Promise<GardenaDevice[]> {
-    const location = await this.selectLocation(loc);
-    return location.getDevices();
+  public async getDevices(location?: GardenaLocation | string): Promise<GardenaDevice[]> {
+    const loc = await this.selectLocation(location);
+    return loc.getDevices();
   }
 
   private async selectLocation(location?: GardenaLocation | string): Promise<GardenaLocation> {
@@ -87,16 +87,20 @@ export class GardenaConnection {
   public async apiRequest(url: string | URL, headers?: any, method = 'GET', body?: any) {
     try {
       // Combine Auth headers with provided ones
-      const combinedHeaders = {...headers, ...{
-        Authorization: `Bearer ${await this.auth.getValidAccessToken()}`,
-        'X-Api-Key': this.auth.clientId
-      }};
+      const combinedHeaders = {
+        ...headers,
+        ...{
+          Authorization: `Bearer ${await this.auth.getValidAccessToken()}`,
+          'X-Api-Key': this.auth.clientId
+        }
+      };
 
       // Request with authorization headers
       const res = await fetch(url, {
         method,
         body,
-        headers: combinedHeaders});
+        headers: combinedHeaders
+      });
 
       // Return JSON
       return await res.json();
