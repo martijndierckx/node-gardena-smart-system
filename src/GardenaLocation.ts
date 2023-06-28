@@ -140,10 +140,9 @@ export class GardenaLocation {
     // Request Websocket URL
     let websocketUrl: string;
     try {
-      const res = await this.connection.apiRequest(`${API_BASE}/websocket`, { 'Content-Type': 'application/vnd.api+json' }, 'POST', body) as any;
+      const res = (await this.connection.apiRequest(`${API_BASE}/websocket`, { 'Content-Type': 'application/vnd.api+json' }, 'POST', body)) as any;
       websocketUrl = res.data.attributes.url;
-    }
-    catch(e) {
+    } catch (e) {
       throw new GardenaApiError(`Couldn't retrieve websocket URL from Gardena API`);
     }
 
@@ -151,18 +150,69 @@ export class GardenaLocation {
     let ws: WebSocket;
     try {
       ws = new WebSocket(websocketUrl);
-    }
-    catch(e) {
+    } catch (e) {
       throw new GardenaApiError(`Couldn't setup websocket with Gardena API`);
     }
 
     // Subscribe to events if websocket was succesfully created
-    if(ws) {
+    if (ws) {
+      ws.on('open', () => {
+        // Emit 'startWSUpdates' event on each device when websocket is opened
+        for (const device of this.devices) {
+          device.emit('startWSUpdates');
+        }
+
+        // Send regular heartbeat to keep the connection open
+        setInterval(() => {
+          ws.ping();
+        }, 150000); // 150 seconds
+      });
+
       ws.on('error', console.error);
 
-      ws.on('message', function message(data) {
-        // TODO
-        console.log('received: %s', data);
+      ws.on('message', (data) => {
+        // Parse JSON
+        let json: any;
+        try {
+          json = JSON.parse(data.toString());
+        } catch (e) {
+          throw new GardenaApiError(`Received websocket message, but couldn't decode as JSON: ${data.toString()}`);
+        }
+
+        // Check if linked to device
+        // First by checking the id of the message
+        let matchedDevice = this.devices.find((x) => {
+          return x.id == json.id;
+        });
+        // Then by checking the id of the mentioned relationship
+        if (!matchedDevice && json.relationships && json.relationships.device && json.relationships.device.data.id) {
+          matchedDevice = this.devices.find((x) => {
+            return x.id == json.relationships.device.data.id;
+          });
+        }
+
+        if (matchedDevice) {
+          // List attributes
+          if (json.attributes) {
+            const attributes: GardenaRawDeviceAttributeJson[] = [];
+            for (const [attrName, attrVal] of Object.entries(json.attributes) as any) {
+              attributes[attrName] = {
+                value: attrVal.value
+              };
+
+              // Add timestamp if provided
+              if (attrVal.timestamp) {
+                attributes[attrName].ts = Moment(attrVal.timestamp);
+              }
+            }
+
+            // Update attributes on device
+            const updateList = matchedDevice.processAttributes(attributes);
+
+            // Emit event with attributes
+            matchedDevice.emit('wsUpdate', updateList);
+          }
+        }
       });
     }
   }

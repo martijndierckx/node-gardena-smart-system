@@ -84,22 +84,18 @@ export enum GardenaMowerErrorCode {
 }
 
 export class GardenaMower extends GardenaDevice {
-  public readonly state: GardenaMowerState;
-  public readonly stateTs: Moment.Moment;
-  public readonly activity: GardenaMowerActivity;
-  public readonly activityTs: Moment.Moment;
-  public readonly lastErrorCode: GardenaMowerErrorCode;
-  public readonly lastErrorCodeTs: Moment.Moment;
+  public state: GardenaMowerState;
+  public stateTs: Moment.Moment;
+  public activity: GardenaMowerActivity;
+  public activityTs: Moment.Moment;
+  public lastErrorCode: GardenaMowerErrorCode;
+  public lastErrorCodeTs: Moment.Moment;
+  public operatingHours: number;
 
   public constructor(id: string, attributes: GardenaRawDeviceAttributeJson[]) {
-    super(id, attributes);
+    super(id);
 
-    this.state = attributes['state'].value;
-    this.stateTs = attributes['state'].ts;
-    this.activity = attributes['activity'].value;
-    this.activityTs = attributes['activity'].ts;
-    this.lastErrorCode = attributes['lastErrorCode'] ? attributes['lastErrorCode'].value : null;
-    this.lastErrorCodeTs = attributes['lastErrorCode'] ? attributes['lastErrorCode'].ts : null;
+    this.processAttributes(attributes);
   }
 
   public get error(): GardenaMowerErrorCode {

@@ -1,3 +1,4 @@
+import EventEmitter from 'events';
 import Moment from 'moment';
 
 export type GardenaRawDevicesJson = {
@@ -38,30 +39,51 @@ export enum GardenaDeviceRfLinkState {
   Unknown = 'UNKNOWN'
 }
 
-export class GardenaDevice {
+export class GardenaDevice extends EventEmitter {
   public readonly id: string;
-  public readonly name: string;
-  public readonly batteryLevel: number;
-  public readonly batteryLevelTs: Moment.Moment;
-  public readonly batteryState: GardenaDeviceBatteryState;
-  public readonly batteryStateTs: Moment.Moment;
-  public readonly rfLinkLevel: number;
-  public readonly rfLinkLevelTs: Moment.Moment;
-  public readonly rfLinkState: GardenaDeviceRfLinkState;
-  public readonly serial: string;
-  public readonly modelType: string;
+  public serial: string;
+  public modelType: string;
+  public name: string;
+  public batteryLevel: number;
+  public batteryLevelTs: Moment.Moment;
+  public batteryState: GardenaDeviceBatteryState;
+  public batteryStateTs: Moment.Moment;
+  public rfLinkLevel: number;
+  public rfLinkLevelTs: Moment.Moment;
+  public rfLinkState: GardenaDeviceRfLinkState;
 
-  protected constructor(id: string, attributes: GardenaRawDeviceAttributeJson[]) {
+  protected constructor(id: string) {
+    super();
+
     this.id = id;
-    this.name = attributes['name'].value;
-    this.batteryLevel = attributes['batteryLevel'].value;
-    this.batteryLevelTs = attributes['batteryLevel'].ts;
-    this.batteryState = attributes['batteryState'].value;
-    this.batteryStateTs = attributes['batteryState'].ts;
-    this.rfLinkLevel = attributes['rfLinkLevel'].value;
-    this.rfLinkLevelTs = attributes['rfLinkLevel'].ts;
-    this.rfLinkState = attributes['rfLinkState'].value;
-    this.serial = attributes['serial'].value;
-    this.modelType = attributes['modelType'].value;
+  }
+
+  public processAttributes(attributes: GardenaRawDeviceAttributeJson[]): string[] {
+    const updatedFields: string[] = [];
+
+    for (const field in attributes) {
+      if (field in this) {
+        // Update value
+        this[field] = attributes[field].value;
+
+        // Update timestamp
+        if (attributes[field].ts) {
+          this[`${field}Ts`] = attributes[field].ts;
+        }
+
+        // Add field to updates list
+        updatedFields.push(field);
+      }
+    }
+
+    return updatedFields;
+  }
+
+  public onStartRealtimeUpdates(func: () => void): this {
+    return this.on('startWSUpdates', func);
+  }
+
+  public onUpdate(func: (updatedValues: string[]) => void): this {
+    return this.on('wsUpdate', func);
   }
 }
