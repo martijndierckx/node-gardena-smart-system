@@ -89,7 +89,14 @@ export class GardenaConnection {
     return this.locations[0];
   }
 
-  public async apiRequest(url: string | URL, headers?: any, method = 'GET', body?: any, expectedStatus = 200, expectedOutput = ApiOutput.Json): Promise<any> {
+  public async apiRequest(
+    url: string | URL,
+    headers?: any,
+    method = 'GET',
+    body?: any,
+    expectedStatus = 200,
+    expectedOutput = ApiOutput.Json
+  ): Promise<any> {
     try {
       // Add header when json body object is provided
       let bodyHeader = null;
@@ -116,7 +123,7 @@ export class GardenaConnection {
       });
 
       // Check status
-      if(res.status != expectedStatus) {
+      if (res.status != expectedStatus) {
         throw new GardenaApiError(`Unexpected status ${res.status} on ${method} on ${url.toString()} on the Gardena API`);
       }
 
@@ -124,7 +131,7 @@ export class GardenaConnection {
       let output = await res.text();
 
       // Parse json if needed
-      if(expectedOutput == ApiOutput.Json) {
+      if (expectedOutput == ApiOutput.Json) {
         output = JSON.parse(output);
       }
 
