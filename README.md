@@ -48,6 +48,7 @@ const devices = await gardena.getDevices();
 const mower = devices[0];
 
 await mower.resumeSchedule();
-await mower.parkUntilFurtherNotice();await mower.parkUntilNextTask();
+await mower.parkUntilFurtherNotice();
+await mower.parkUntilNextTask();
 await mower.startMowing(60); // 60 minutes
 ```
