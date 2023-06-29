@@ -38,3 +38,16 @@ mower.onUpdate((updatedFields)=> {
 
 await gardena.activateRealtimeUpdates();
 ```
+
+## Commanding a device
+```javascript
+import GardenaConnection from 'gardena-smart-system';
+
+const gardena = new GardenaConnection({ clientId: 'YOUR_APP_KEY', clientSecret:'YOUR_APP_SECRET' });
+const devices = await gardena.getDevices();
+const mower = devices[0];
+
+await mower.resumeSchedule();
+await mower.parkUntilFurtherNotice();await mower.parkUntilNextTask();
+await mower.startMowing(60); // 60 minutes
+```
