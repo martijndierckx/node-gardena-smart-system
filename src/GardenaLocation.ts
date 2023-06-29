@@ -6,7 +6,6 @@ import { GardenaApiError, GardenaConnection } from './GardenaConnection';
 import { GardenaDevice, GardenaRawDeviceAttributeJson, GardenaRawDevicesJson } from './GardenaDevice';
 import { GardenaMower } from './GardenaMower';
 
-
 export class GardenaLocationError extends Error {}
 
 export type GardenaRawLocationsJson = {
@@ -129,7 +128,7 @@ export class GardenaLocation {
     }
 
     // Create request body
-    const body ={
+    const body = {
       data: {
         id: crypto.randomUUID(),
         type: 'WEBSOCKET',

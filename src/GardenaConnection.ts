@@ -88,7 +88,7 @@ export class GardenaConnection {
     try {
       // Add header when json body object is provided
       let bodyHeader = null;
-      if(body && typeof body === 'object') {
+      if (body && typeof body === 'object') {
         bodyHeader = { 'Content-Type': 'application/vnd.api+json' };
         body = JSON.stringify(body);
       }

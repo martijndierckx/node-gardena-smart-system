@@ -6,3 +6,5 @@ export type * from './GardenaAuth';
 export type * from './GardenaDevice';
 export type * from './GardenaLocation';
 export type * from './GardenaMower';
+
+export * from './Enums';

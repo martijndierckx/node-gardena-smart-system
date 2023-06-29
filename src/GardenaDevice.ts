@@ -1,6 +1,7 @@
 import EventEmitter from 'events';
 import Moment from 'moment';
 import { GardenaConnection } from './GardenaConnection';
+import { GardenaDeviceBatteryState, GardenaDeviceRfLinkState } from './Enums';
 
 export type GardenaRawDevicesJson = {
   data: {
@@ -23,22 +24,6 @@ export type GardenaRawDeviceAttributeJson = {
   value: any;
   ts?: Moment.Moment;
 };
-
-export enum GardenaDeviceBatteryState {
-  Ok = 'OK',
-  Low = 'LOW',
-  ReplaceNow = 'REPLACE_NOW',
-  OutOfOperation = 'OUT_OF_OPERATION',
-  Charging = 'CHARGING',
-  NoBattery = 'NO_BATTERY',
-  Unknown = 'UNKNOWN'
-}
-
-export enum GardenaDeviceRfLinkState {
-  Online = 'ONLINE',
-  Offline = 'OFFLINE',
-  Unknown = 'UNKNOWN'
-}
 
 export class GardenaDevice extends EventEmitter {
   protected connection: GardenaConnection;
