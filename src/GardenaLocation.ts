@@ -141,7 +141,7 @@ export class GardenaLocation {
     // Request Websocket URL
     let websocketUrl: string;
     try {
-      const res = (await this.connection.apiRequest(`${API_BASE}/websocket`, null, 'POST', body)) as any;
+      const res = (await this.connection.apiRequest(`${API_BASE}/websocket`, null, 'POST', body, 201)) as any;
       websocketUrl = res.data.attributes.url;
     } catch (e) {
       throw new GardenaApiError(`Couldn't retrieve websocket URL from Gardena API`);

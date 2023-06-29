@@ -2,7 +2,7 @@ import Moment from 'moment';
 import crypto from 'crypto';
 import { API_BASE } from './config';
 import { GardenaDevice, GardenaRawDeviceAttributeJson } from './GardenaDevice';
-import { GardenaConnection } from './GardenaConnection';
+import { ApiOutput, GardenaConnection } from './GardenaConnection';
 import { GardenaApiError } from './GardenaConnection';
 import { GardenaMowerState, GardenaMowerActivity, GardenaMowerErrorCode } from './Enums';
 
@@ -64,9 +64,7 @@ export class GardenaMower extends GardenaDevice {
       }
 
       // Request
-      const res = await this.connection.apiRequest(`${API_BASE}/command/${this.serviceId}`, null, 'PUT', body);
-
-      console.log(res);
+      await this.connection.apiRequest(`${API_BASE}/command/${this.serviceId}`, null, 'PUT', body, 202, ApiOutput.Text);
     } catch (e) {
       throw new GardenaApiError(`Couldn't execute MOWER_CONTROL command`);
     }

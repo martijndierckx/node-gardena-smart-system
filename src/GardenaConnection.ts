@@ -11,6 +11,11 @@ export type GardenaConnectionConfig = {
 
 export class GardenaApiError extends Error {}
 
+export enum ApiOutput {
+  Json = 'json',
+  Text = 'txt'
+}
+
 export class GardenaConnection {
   private auth: GardenaAuth;
   private locations: GardenaLocation[];
@@ -84,7 +89,7 @@ export class GardenaConnection {
     return this.locations[0];
   }
 
-  public async apiRequest(url: string | URL, headers?: any, method = 'GET', body?: any) {
+  public async apiRequest(url: string | URL, headers?: any, method = 'GET', body?: any, expectedStatus = 200, expectedOutput = ApiOutput.Json): Promise<any> {
     try {
       // Add header when json body object is provided
       let bodyHeader = null;
@@ -110,8 +115,21 @@ export class GardenaConnection {
         headers: combinedHeaders
       });
 
-      // Return JSON
-      return await res.json();
+      // Check status
+      if(res.status != expectedStatus) {
+        throw new GardenaApiError(`Unexpected status ${res.status} on ${method} on ${url.toString()} on the Gardena API`);
+      }
+
+      // Get output
+      let output = await res.text();
+
+      // Parse json if needed
+      if(expectedOutput == ApiOutput.Json) {
+        output = JSON.parse(output);
+      }
+
+      // Return output
+      return output;
     } catch (e) {
       throw new GardenaApiError(`Failed to get response from ${method} on ${url.toString()} on the Gardena API`);
     }
