@@ -29,6 +29,11 @@ export class GardenaConnection {
     return loc.activateRealtimeUpdates();
   }
 
+  public async deactivateRealtimeUpdates(location?: GardenaLocation | string): Promise<void> {
+    const loc = await this.selectLocation(location);
+    return loc.deactivateRealtimeUpdates();
+  }
+
   public async getLocations(): Promise<GardenaLocation[]> {
     // Reset locations list
     this.locations = [];
