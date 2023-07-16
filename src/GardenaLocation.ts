@@ -26,6 +26,8 @@ export class GardenaLocation {
   public readonly name: string;
   public readonly type: string;
   public devices: GardenaDevice[];
+  private ws: WebSocket;
+  private keepWsAlive: boolean;
 
   public constructor(connection: GardenaConnection, json: GardenaRawLocationJson) {
     this.connection = connection;
@@ -122,6 +124,15 @@ export class GardenaLocation {
   }
 
   public async activateRealtimeUpdates(): Promise<void> {
+    this.keepWsAlive = true;
+
+    // Destroy the already active websocket
+    if (this.ws) {
+      try {
+        this.ws.terminate();
+      } catch (e) {}
+    }
+
     // Get initial list of devices if not already done
     if (!this.devices) {
       await this.updateDevicesList();
@@ -148,18 +159,17 @@ export class GardenaLocation {
     }
 
     // Setup websocket
-    let ws: WebSocket;
     try {
-      ws = new WebSocket(websocketUrl);
+      this.ws = new WebSocket(websocketUrl);
     } catch (e) {
       throw new GardenaApiError(`Couldn't setup websocket with Gardena API`);
     }
 
     // Subscribe to events if websocket was succesfully created
-    if (ws) {
+    if (this.ws) {
       let pingInterval: NodeJS.Timer;
 
-      ws.on('open', () => {
+      this.ws.on('open', () => {
         // Emit 'startWSUpdates' event on each device when websocket is opened
         for (const device of this.devices) {
           device.emit('startWSUpdates');
@@ -167,19 +177,17 @@ export class GardenaLocation {
 
         // Send regular heartbeat to keep the connection open
         pingInterval = setInterval(() => {
-          ws.ping();
+          this.ws.ping((err) => {
+            if (err) {
+              // Didn't recieve a timely pong from the server. So assuming the connection is dead and needs to be reopened
+              this.ws.terminate();
+              checkClose();
+            }
+          });
         }, 150000); // 150 seconds
       });
 
-      ws.on('close', async () => {
-        clearInterval(pingInterval);
-
-        // Reinitiate websocket
-        await this.updateDevicesList();
-        await this.activateRealtimeUpdates();
-      });
-
-      ws.on('message', (data) => {
+      this.ws.on('message', (data) => {
         // Parse JSON
         let json: any;
         try {
@@ -223,6 +231,28 @@ export class GardenaLocation {
           }
         }
       });
+
+      const checkClose = async () => {
+        clearInterval(pingInterval);
+
+        // Emit 'stopWSUpdates' event on each device when websocket is closed
+        for (const device of this.devices) {
+          device.emit('stopWSUpdates');
+        }
+
+        // Reinitiate websocket
+        if (this.keepWsAlive) {
+          await this.updateDevicesList();
+          await this.activateRealtimeUpdates();
+        }
+      };
+
+      this.ws.on('close', checkClose);
     }
+  }
+
+  public async deactivateRealtimeUpdates(): Promise<void> {
+    this.keepWsAlive = false;
+    this.ws.close();
   }
 }

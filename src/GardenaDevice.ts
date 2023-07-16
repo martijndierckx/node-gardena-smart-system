@@ -71,6 +71,10 @@ export class GardenaDevice extends EventEmitter {
     return this.on('startWSUpdates', func);
   }
 
+  public onStopRealtimeUpdates(func: () => void): this {
+    return this.on('stopWSUpdates', func);
+  }
+
   public onUpdate(func: (updatedValues: string[]) => void): this {
     return this.on('wsUpdate', func);
   }
