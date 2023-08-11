@@ -8,3 +8,7 @@ export type * from './GardenaLocation';
 export type * from './GardenaMower';
 
 export * from './Enums.js';
+
+export { GardenaWrongCredentialsError, GardenaAuthError } from './GardenaAuth.js';
+export { GardenaApiError } from './GardenaConnection.js';
+export { GardenaLocationError } from './GardenaLocation.js'
