@@ -1,10 +1,10 @@
 import Moment from 'moment';
 import crypto from 'crypto';
 import WebSocket from 'ws';
-import { API_BASE } from './config';
-import { GardenaApiError, GardenaConnection } from './GardenaConnection';
-import { GardenaDevice, GardenaRawDeviceAttributeJson, GardenaRawDevicesJson } from './GardenaDevice';
-import { GardenaMower } from './GardenaMower';
+import { API_BASE } from './config.js';
+import { GardenaApiError, GardenaConnection } from './GardenaConnection.js';
+import { GardenaDevice, GardenaRawDeviceAttributeJson, GardenaRawDevicesJson } from './GardenaDevice.js';
+import { GardenaMower } from './GardenaMower.js';
 
 export class GardenaLocationError extends Error {}
 

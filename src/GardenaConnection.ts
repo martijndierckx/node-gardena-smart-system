@@ -1,8 +1,8 @@
 import fetch from 'node-fetch';
-import { API_BASE } from './config';
-import { GardenaAuth } from './GardenaAuth';
-import { GardenaLocation, GardenaLocationError, GardenaRawLocationsJson } from './GardenaLocation';
-import { GardenaDevice } from './GardenaDevice';
+import { API_BASE } from './config.js';
+import { GardenaAuth } from './GardenaAuth.js';
+import { GardenaLocation, GardenaLocationError, GardenaRawLocationsJson } from './GardenaLocation.js';
+import { GardenaDevice } from './GardenaDevice.js';
 
 export type GardenaConnectionConfig = {
   clientId: string;

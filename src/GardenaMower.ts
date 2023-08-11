@@ -1,10 +1,10 @@
 import Moment from 'moment';
 import crypto from 'crypto';
-import { API_BASE } from './config';
-import { GardenaDevice, GardenaRawDeviceAttributeJson } from './GardenaDevice';
-import { ApiOutput, GardenaConnection } from './GardenaConnection';
-import { GardenaApiError } from './GardenaConnection';
-import { GardenaMowerState, GardenaMowerActivity, GardenaMowerErrorCode } from './Enums';
+import { API_BASE } from './config.js';
+import { GardenaDevice, GardenaRawDeviceAttributeJson } from './GardenaDevice.js';
+import { ApiOutput, GardenaConnection } from './GardenaConnection.js';
+import { GardenaApiError } from './GardenaConnection.js';
+import { GardenaMowerState, GardenaMowerActivity, GardenaMowerErrorCode } from './Enums.js';
 
 enum GardenaMowerCommand {
   Start = 'START_SECONDS_TO_OVERRIDE',

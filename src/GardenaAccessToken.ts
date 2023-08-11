@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 import Moment from 'moment';
 import { URLSearchParams } from 'url';
-import { GardenaAuthError, GardenaWrongCredentialsError } from './GardenaAuth';
+import { GardenaAuthError, GardenaWrongCredentialsError } from './GardenaAuth.js';
 
 export type GardenaRawAccessTokenJson = {
   access_token: string;

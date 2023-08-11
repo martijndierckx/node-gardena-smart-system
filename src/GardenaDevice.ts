@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
 import Moment from 'moment';
-import { GardenaConnection } from './GardenaConnection';
-import { GardenaDeviceBatteryState, GardenaDeviceRfLinkState } from './Enums';
+import { GardenaConnection } from './GardenaConnection.js';
+import { GardenaDeviceBatteryState, GardenaDeviceRfLinkState } from './Enums.js';
 
 export type GardenaRawDevicesJson = {
   data: {

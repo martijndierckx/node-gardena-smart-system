@@ -1,4 +1,4 @@
-import { GardenaAccessToken } from './GardenaAccessToken';
+import { GardenaAccessToken } from './GardenaAccessToken.js';
 
 export type GardenaAuthConfig = {
   clientId: string;
