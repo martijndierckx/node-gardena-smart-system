@@ -50,7 +50,7 @@ export class GardenaConnection {
         throw new GardenaApiError('No locations found');
       }
     } catch (e) {
-      throw new GardenaApiError('Failed to get locations from Gardena API');
+      throw new GardenaApiError('Failed to get locations from Gardena API', { cause: e });
     }
 
     // Return locations
@@ -143,7 +143,7 @@ export class GardenaConnection {
       // Return output
       return output;
     } catch (e) {
-      throw new GardenaApiError(`Failed to get response from ${method} on ${url.toString()} on the Gardena API`);
+      throw new GardenaApiError(`Failed to get response from ${method} on ${url.toString()} on the Gardena API`, { cause: e });
     }
   }
 }

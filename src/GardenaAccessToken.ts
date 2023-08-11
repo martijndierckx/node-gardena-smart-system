@@ -62,7 +62,7 @@ export class GardenaAccessToken {
       // Parse response
       json = (await res.json()) as GardenaRawAccessTokenJson;
     } catch (e) {
-      throw new GardenaAuthError('Could not retrieve OAuth token');
+      throw new GardenaAuthError('Could not retrieve OAuth token', { cause: e });
     }
 
     // Check parsed result

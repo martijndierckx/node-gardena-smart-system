@@ -117,7 +117,7 @@ export class GardenaLocation {
         throw new GardenaApiError(`No devices status retrieved for location ${this.id}`);
       }
     } catch (e) {
-      throw new GardenaApiError('Failed to get locations from Gardena API');
+      throw new GardenaApiError('Failed to get locations from Gardena API', { cause: e });
     }
 
     this.devices = devices;
@@ -155,7 +155,7 @@ export class GardenaLocation {
       const res = (await this.connection.apiRequest(`${API_BASE}/websocket`, null, 'POST', body, 201)) as any;
       websocketUrl = res.data.attributes.url;
     } catch (e) {
-      throw new GardenaApiError(`Couldn't retrieve websocket URL from Gardena API`);
+      throw new GardenaApiError(`Couldn't retrieve websocket URL from Gardena API`, { cause: e });
     }
 
     // Setup websocket

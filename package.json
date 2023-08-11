@@ -1,6 +1,6 @@
 {
   "name": "gardena-smart-system",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "description": "A nodejs package which allows communicating with the Gardena smart system API",
   "main": "dist/index.js",

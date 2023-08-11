@@ -66,7 +66,7 @@ export class GardenaMower extends GardenaDevice {
       // Request
       await this.connection.apiRequest(`${API_BASE}/command/${this.serviceId}`, null, 'PUT', body, 202, ApiOutput.Text);
     } catch (e) {
-      throw new GardenaApiError(`Couldn't execute MOWER_CONTROL command`);
+      throw new GardenaApiError(`Couldn't execute MOWER_CONTROL command`, { cause: e });
     }
   }
 
