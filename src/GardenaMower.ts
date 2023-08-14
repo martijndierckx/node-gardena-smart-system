@@ -72,8 +72,8 @@ export class GardenaMower extends GardenaDevice {
 
   public get error(): GardenaMowerErrorCode {
     // If currently in warning/error state, return the latest known error
-    if ((this.state == GardenaMowerState.Error || this.state == GardenaMowerState.Warning) && this.error) {
-      return this.error;
+    if ((this.state == GardenaMowerState.Error || this.state == GardenaMowerState.Warning) && this.lastErrorCode) {
+      return this.lastErrorCode;
     }
 
     return null;
