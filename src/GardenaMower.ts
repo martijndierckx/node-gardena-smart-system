@@ -78,4 +78,8 @@ export class GardenaMower extends GardenaDevice {
 
     return null;
   }
+
+  public get ids(): string[] {
+    return [this.id, this.serviceId];
+  }
 }

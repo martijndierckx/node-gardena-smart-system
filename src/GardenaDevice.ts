@@ -25,7 +25,7 @@ export type GardenaRawDeviceAttributeJson = {
   ts?: Moment.Moment;
 };
 
-export class GardenaDevice extends EventEmitter {
+export abstract class GardenaDevice extends EventEmitter {
   protected connection: GardenaConnection;
   public readonly id: string;
   public serial: string;
@@ -77,5 +77,9 @@ export class GardenaDevice extends EventEmitter {
 
   public onUpdate(func: (updatedValues: string[]) => void): this {
     return this.on('wsUpdate', func);
+  }
+
+  public get ids(): string[] {
+    return [this.id];
   }
 }

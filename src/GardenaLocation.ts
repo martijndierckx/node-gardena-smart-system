@@ -199,7 +199,7 @@ export class GardenaLocation {
         // Check if linked to device
         // First by checking the id of the message
         let matchedDevice = this.devices.find((x) => {
-          return x.id == json.id;
+          return x.ids.includes(json.id);
         });
         // Then by checking the id of the mentioned relationship
         if (!matchedDevice && json.relationships && json.relationships.device && json.relationships.device.data.id) {
