@@ -1,6 +1,6 @@
 {
   "name": "gardena-smart-system",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "type": "module",
   "description": "A nodejs package which allows communicating with the Gardena smart system API",
   "main": "dist/index.js",
@@ -9,21 +9,18 @@
   "license": "MIT",
   "dependencies": {
     "moment": "^2.29.4",
-    "node-fetch": "^3.3.1",
-    "source-map-support": "^0.5.21",
-    "tldts": "^6.0.11",
-    "tslib": "~2.6.0",
+    "node-fetch": "^3.3.2",
+    "tslib": "~2.6.1",
     "ws": "^8.13.0"
   },
   "devDependencies": {
-    "@types/node": "^18.16.19",
-    "@types/source-map-support": "^0.5.6",
+    "@types/node": "^18.17.5",
     "@types/ws": "^8.5.5",
-    "@typescript-eslint/eslint-plugin": "6.0.0",
-    "@typescript-eslint/parser": "6.0.0",
-    "eslint": "~8.45.0",
-    "eslint-config-prettier": "~8.8.0",
-    "prettier": "~3.0.0",
+    "@typescript-eslint/eslint-plugin": "6.4.0",
+    "@typescript-eslint/parser": "6.4.0",
+    "eslint": "~8.47.0",
+    "eslint-config-prettier": "~9.0.0",
+    "prettier": "~3.0.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
