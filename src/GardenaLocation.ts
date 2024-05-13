@@ -167,7 +167,7 @@ export class GardenaLocation {
 
     // Subscribe to events if websocket was succesfully created
     if (this.ws) {
-      let pingInterval: NodeJS.Timer;
+      let pingInterval: NodeJS.Timeout;
 
       this.ws.on('open', () => {
         // Emit 'startWSUpdates' event on each device when websocket is opened
