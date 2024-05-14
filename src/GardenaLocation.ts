@@ -1,6 +1,6 @@
 import Moment from 'moment';
 import crypto from 'crypto';
-import WebSocket from 'ws';
+import WebSocket, { RawData } from 'ws';
 import { API_BASE } from './config.js';
 import { GardenaApiError, GardenaConnection } from './GardenaConnection.js';
 import { GardenaDevice, GardenaRawDeviceAttributeJson, GardenaRawDevicesJson } from './GardenaDevice.js';
@@ -20,6 +20,8 @@ export type GardenaRawLocationJson = {
   };
 };
 
+const PING_INTERVAL = 150000; // 150 seconds
+
 export class GardenaLocation {
   private connection: GardenaConnection;
   public readonly id: string;
@@ -27,6 +29,8 @@ export class GardenaLocation {
   public readonly type: string;
   public devices: GardenaDevice[];
   private ws: WebSocket;
+  private wsPingInterval: NodeJS.Timeout;
+  private wsPongTimeout: NodeJS.Timeout;
   private keepWsAlive: boolean;
 
   public constructor(connection: GardenaConnection, json: GardenaRawLocationJson) {
@@ -123,14 +127,134 @@ export class GardenaLocation {
     this.devices = devices;
   }
 
+  private onWSOpen(): void {
+    // Emit 'startWSUpdates' event on each device when websocket is opened
+    for (const device of this.devices) {
+      device.emit('startWSUpdates');
+    }
+
+    // Send regular heartbeat to keep the connection open
+    this.wsPingInterval = setInterval(() => {
+      // Expect pong
+      this.wsPongTimeout = setTimeout(() => {
+        // Didn't recieve a timely pong from the server. So assuming the connection is dead and needs to be reopened
+        this.resetWS();
+      }, 1000);
+
+      // Send ping
+      this.ws.ping((err) => {
+        if (err) {
+          this.resetWS();
+        }
+      });
+    }, PING_INTERVAL);
+  }
+
+  private onWSPong(): void {
+    clearTimeout(this.wsPongTimeout);
+  }
+
+  private onWSError(): void {
+    this.resetWS();
+  }
+
+  private onWSMessage(data: RawData): void {
+    // Parse JSON
+    let json: any;
+    try {
+      json = JSON.parse(data.toString());
+    } catch (e) {
+      throw new GardenaApiError(`Received websocket message, but couldn't decode as JSON: ${data.toString()}`);
+    }
+
+    // Check if linked to device
+    // First by checking the id of the message
+    let matchedDevice = this.devices.find((x) => {
+      return x.ids.includes(json.id);
+    });
+    // Then by checking the id of the mentioned relationship
+    if (!matchedDevice && json.relationships && json.relationships.device && json.relationships.device.data.id) {
+      matchedDevice = this.devices.find((x) => {
+        return x.id == json.relationships.device.data.id;
+      });
+    }
+
+    if (matchedDevice) {
+      // List attributes
+      if (json.attributes) {
+        const attributes: GardenaRawDeviceAttributeJson[] = [];
+        for (const [attrName, attrVal] of Object.entries(json.attributes) as any) {
+          attributes[attrName] = {
+            value: attrVal.value
+          };
+
+          // Add timestamp if provided
+          if (attrVal.timestamp) {
+            attributes[attrName].ts = Moment(attrVal.timestamp);
+          }
+        }
+
+        // Update attributes on device
+        const updateList = matchedDevice.processAttributes(attributes);
+
+        // Emit event with attributes
+        matchedDevice.emit('wsUpdate', updateList);
+      }
+    }
+  }
+
+  private async onWSClose(): Promise<void> {
+    this.resetWS();
+  }
+
+  private async resetWS(): Promise<void> {
+    // Terminate ws
+    this.closeWS(true);
+
+    // Emit 'stopWSUpdates' event on each device when websocket is closed
+    for (const device of this.devices) {
+      device.emit('stopWSUpdates');
+    }
+
+    // Wait 10 sec
+    await new Promise((r) => setTimeout(r, 10000));
+
+    // Reinitiate websocket
+    if (this.keepWsAlive) {
+      await this.updateDevicesList();
+      await this.activateRealtimeUpdates();
+    }
+  }
+
+  private closeWS(immediatly = false): void {
+    if (this.ws) {
+      try {
+        // Close
+        if (immediatly) {
+          this.ws.terminate();
+        } else {
+          this.ws.close();
+        }
+
+        // Clear timers
+        clearInterval(this.wsPingInterval);
+        clearTimeout(this.wsPongTimeout);
+
+        // Remove event listeners
+        this.ws.removeAllListeners();
+
+        // Unset WS
+        this.ws = undefined;
+      } catch (e) {}
+    }
+  }
+
   public async activateRealtimeUpdates(): Promise<void> {
     this.keepWsAlive = true;
 
     // Destroy the already active websocket
     if (this.ws) {
-      try {
-        this.ws.terminate();
-      } catch (e) {}
+      this.closeWS(true);
     }
 
     // Get initial list of devices if not already done
@@ -167,92 +291,26 @@ export class GardenaLocation {
 
     // Subscribe to events if websocket was succesfully created
     if (this.ws) {
-      let pingInterval: NodeJS.Timeout;
-
       this.ws.on('open', () => {
-        // Emit 'startWSUpdates' event on each device when websocket is opened
-        for (const device of this.devices) {
-          device.emit('startWSUpdates');
-        }
-
-        // Send regular heartbeat to keep the connection open
-        pingInterval = setInterval(() => {
-          this.ws.ping((err) => {
-            if (err) {
-              // Didn't recieve a timely pong from the server. So assuming the connection is dead and needs to be reopened
-              this.ws.terminate();
-              checkClose();
-            }
-          });
-        }, 150000); // 150 seconds
+        this.onWSOpen();
       });
-
-      this.ws.on('message', (data) => {
-        // Parse JSON
-        let json: any;
-        try {
-          json = JSON.parse(data.toString());
-        } catch (e) {
-          throw new GardenaApiError(`Received websocket message, but couldn't decode as JSON: ${data.toString()}`);
-        }
-
-        // Check if linked to device
-        // First by checking the id of the message
-        let matchedDevice = this.devices.find((x) => {
-          return x.ids.includes(json.id);
-        });
-        // Then by checking the id of the mentioned relationship
-        if (!matchedDevice && json.relationships && json.relationships.device && json.relationships.device.data.id) {
-          matchedDevice = this.devices.find((x) => {
-            return x.id == json.relationships.device.data.id;
-          });
-        }
-
-        if (matchedDevice) {
-          // List attributes
-          if (json.attributes) {
-            const attributes: GardenaRawDeviceAttributeJson[] = [];
-            for (const [attrName, attrVal] of Object.entries(json.attributes) as any) {
-              attributes[attrName] = {
-                value: attrVal.value
-              };
-
-              // Add timestamp if provided
-              if (attrVal.timestamp) {
-                attributes[attrName].ts = Moment(attrVal.timestamp);
-              }
-            }
-
-            // Update attributes on device
-            const updateList = matchedDevice.processAttributes(attributes);
-
-            // Emit event with attributes
-            matchedDevice.emit('wsUpdate', updateList);
-          }
-        }
+      this.ws.on('pong', () => {
+        this.onWSPong();
       });
-
-      const checkClose = async () => {
-        clearInterval(pingInterval);
-
-        // Emit 'stopWSUpdates' event on each device when websocket is closed
-        for (const device of this.devices) {
-          device.emit('stopWSUpdates');
-        }
-
-        // Reinitiate websocket
-        if (this.keepWsAlive) {
-          await this.updateDevicesList();
-          await this.activateRealtimeUpdates();
-        }
-      };
-
-      this.ws.on('close', checkClose);
+      this.ws.on('message', (msg) => {
+        this.onWSMessage(msg);
+      });
+      this.ws.on('close', () => {
+        this.onWSClose();
+      });
+      this.ws.on('error', () => {
+        this.onWSError();
+      });
     }
   }
 
   public async deactivateRealtimeUpdates(): Promise<void> {
     this.keepWsAlive = false;
-    this.ws.close();
+    this.closeWS();
   }
 }
